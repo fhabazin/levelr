@@ -128,19 +128,27 @@ public class Level {
         roomSizeY = imageSizeY/ySize;
 
         Graphics g = image.getGraphics();
-        g.setColor(Color.orange);
+        g.setColor(Color.BLACK);
 
 
         for (int x = 0; x < this.xSize; x++) {
             for (int y = 0; y < this.ySize; y++) {
-                if (level[x][y].isNorth())
-                    g.drawLine(x * roomSizeX, y * roomSizeY, x * roomSizeX, (y + 1) * roomSizeY );
-                if (level[x][y].isWest())
+                if (level[x][y].isNorth()) {
+                    g.drawLine(x * roomSizeX, y * roomSizeY, x * roomSizeX, (y + 1) * roomSizeY);
+                    g.drawLine(1+x * roomSizeX, y * roomSizeY, 1+x * roomSizeX, (y + 1) * roomSizeY);
+                }
+                if (level[x][y].isWest()){
                     g.drawLine(x * roomSizeX, y * roomSizeY, (x + 1) * roomSizeX , y * roomSizeY);
-                if (level[x][y].isEast())
+                    g.drawLine(x * roomSizeX, 1+y * roomSizeY, (x + 1) * roomSizeX , 1+y * roomSizeY);
+                }
+                if (level[x][y].isEast()){
                     g.drawLine(x * roomSizeX, (y + 1)* roomSizeY, (x +1) * roomSizeX, (y + 1) * roomSizeY);
-                if(level[x][y].isSouth())
+                    g.drawLine(x * roomSizeX, 1+(y + 1)* roomSizeY, (x +1) * roomSizeX, 1+(y + 1) * roomSizeY);
+                }
+                if(level[x][y].isSouth()){
                     g.drawLine((x +1) * roomSizeX, y * roomSizeY, (x +1) * roomSizeX,  (y + 1) * roomSizeY );
+                    g.drawLine(1+(x +1) * roomSizeX, y * roomSizeY, 1+(x +1) * roomSizeX,  (y + 1) * roomSizeY );
+                }
             }
         }
         g.dispose();
@@ -179,7 +187,7 @@ public class Level {
     public boolean[][] getWalls(){
         Room currentRoom;
         boolean[][] walls = new boolean[(xSize+1)*roomSizeX][(ySize+1)*roomSizeY];
-        int i;
+        int i = 0;
         for(int x = 0; x < xSize; x++){
             for(int y = 0; y < ySize; y++){
                 currentRoom = level[x][y];

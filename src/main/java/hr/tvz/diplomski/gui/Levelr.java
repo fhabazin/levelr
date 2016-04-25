@@ -76,6 +76,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
         numberOfWalls = new JLabel("Number of walls");
         wallNumber = new JTextField(2);
+
         levelPanel.add(numberOfWalls);
         levelPanel.add(wallNumber);
 
@@ -148,12 +149,11 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
             canvas.setImage(level.generateLevelImage(canvas.getImage(), canvas.getImgSizeX(), canvas.getImgSizeY()));
             canvas.repaint();
-            baseLevel = copyImage((BufferedImage)canvas.getImage());
-
+            baseLevel = canvas.getImage().getScaledInstance(canvas.getImage().getWidth(null), -1, Image.SCALE_DEFAULT);
 
             walls=level.getWalls();
-
-            for(int x = 0; x<walls.length;x++){
+            generateLevel.setEnabled(false);
+            /*for(int x = 0; x<walls.length;x++){
                 for(int y = 0; y<walls[0].length;y++){
                     if(walls[x][y])
                         System.out.print("1,");
@@ -162,7 +162,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
                 }
                 System.out.print("\n");
-            }
+            }*/
 
             placeNet.setEnabled(true);
             placeSource.setEnabled(true);
@@ -203,9 +203,6 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
             soundSourceX = (int)round(e.getX(), level.getRoomSizeX() / 2);
             soundSourceY = (int)round( e.getY(), level.getRoomSizeY()/2);
-            Graphics g = canvas.getImage().getGraphics();
-            g.drawImage(soundSource, 12 + soundSourceX - level.getRoomSizeX() / 2, 12 + soundSourceY - level.getRoomSizeY() / 2, null);
-            g.dispose();
             sndLoc.setText("sndX: "+soundSourceX+", sndY: "+soundSourceY);
             canvas.setImage(canvas.getImage());
 
@@ -308,7 +305,8 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
             offGraphics.drawImage(levelr, 4 + networkLocationX - level.getRoomSizeX() / 2, 4 + networkLocationY - level.getRoomSizeY() / 2, null);
 
             canvas.setImage(image);
-            //calculateWaveDirection();
+
+            checkForWave();
 
             if(checkForWave()){
                 System.out.println(checkForWave());
@@ -318,9 +316,10 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                     }
                 }
             }
-            //netLoc.setText("netX: "+networkLocationX+", netY: "+networkLocationY);
+            netLoc.setText("netX: "+networkLocationX+", netY: "+networkLocationY);
 
             try {
+
                 startTime += delay;
                 Thread.sleep(Math.max(0,startTime-System.currentTimeMillis()));
 
@@ -342,6 +341,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         wave = new short[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
+                wave[y][x]=0;
                 short north = 0,west = 0, east = 0, south=0;
 
                 if(x > 0 && x < width-1) {
@@ -368,7 +368,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                 //short data = (short) ((ripplemap[mapind - width] + ripplemap[mapind + width] + ripplemap[mapind - 1] + ripplemap[mapind + 1]) >> 1);
                 short data = (short) ((north + west + east + south) >> 1);
                 data -= ripplemap[newind + i];
-                data -= data >> 6;
+                data -= data >> 7;
                 ripplemap[newind + i] = data;
 
                 //where data=0 then still, where data>0 then wave
@@ -380,12 +380,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                 //offsets
                 a = ((x - hwidth) * data / 1024) + hwidth;
                 b = ((y - hheight) * data / 1024) + hheight;
-                /*if(data != 0)
 
-                    System.out.println("x: "+x+", y: "+y+ " 1");
-                else
-                    System.out.println("x: "+x+", y: "+y+ " 0");
-*/
                 wave[y][x] = data;
 
                 //bounds check
@@ -427,37 +422,15 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         return b;
     }
 
-    public void calculateWaveDirection(){
-        int networkCellX = networkLocationX/40;
-        int networkCellY = networkLocationY/40;
-        System.out.print(networkLocationX + " " +networkLocationY);
-        System.out.print(networkCellX + " " +networkCellY);
 
-        double northGradient = 0, eastGradient = 0, southGradient = 0, westGradient = 0;
-        if(!level.getRoomAtPoint(networkCellX,networkCellY).isNorth())
-            northGradient = Math.sqrt(Math.pow((double)(networkLocationY - (networkLocationY-40)),2.0) +
-                Math.sqrt(Math.pow((double)(ripple[networkLocationX + networkLocationY * width] - ripple[networkLocationX + networkLocationY * width - 20]),2.0)));
-
-        if(!level.getRoomAtPoint(networkCellX,networkCellY).isSouth())
-            northGradient = Math.sqrt(Math.pow((double)(networkLocationY - (networkLocationY+40)),2.0) +
-                    Math.sqrt(Math.pow((double)(ripple[networkLocationX + networkLocationY * width] - ripple[networkLocationX + networkLocationY * width + 20]),2.0)));
-
-        if(!level.getRoomAtPoint(networkCellX,networkCellY).isEast())
-            northGradient = Math.sqrt(Math.pow((double)(networkLocationX - (networkLocationX-40)),2.0) +
-                    Math.sqrt(Math.pow((double)(ripple[networkLocationX + networkLocationY*width] - ripple[networkLocationX - 40 + networkLocationY * width]),2.0)));
-
-        if(!level.getRoomAtPoint(networkCellX,networkCellY).isSouth())
-            northGradient = Math.sqrt(Math.pow((double)(networkCellY - (networkLocationY+40)),2.0) +
-                    Math.sqrt(Math.pow((double)(ripple[networkLocationX + networkLocationY*width] - ripple[networkLocationX + 40 + networkLocationY * width]),2.0)));
-
-        System.out.print("north gradient: " + northGradient + "\n east gradient: "+ eastGradient + "\n west gradient: "+ westGradient + "\n south gradient: "+southGradient);
-    }
 
     public boolean checkForWave(){
         int numberOfNonZeroPixels=0;
+
         for (int y = networkLocationY - 20 ; y < networkLocationY + 20; y++) {
             for (int x = networkLocationX - 20; x < networkLocationX + 20; x++) {
-                if(wave[y][x]!=0){
+                System.out.println(wave[y][x]);
+                if(wave[y][x]!=1024){
                     numberOfNonZeroPixels++;
                 }
 
@@ -470,10 +443,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
     }
 
-    private void makeImage()
-    {
 
-    }
 
 
 
