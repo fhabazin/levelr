@@ -179,7 +179,7 @@ public class Level {
     public boolean[][] getWalls(){
         Room currentRoom;
         boolean[][] walls = new boolean[(xSize+1)*roomSizeX][(ySize+1)*roomSizeY];
-        int i = 0;
+        int i;
         for(int x = 0; x < xSize; x++){
             for(int y = 0; y < ySize; y++){
                 currentRoom = level[x][y];
