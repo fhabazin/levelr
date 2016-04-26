@@ -192,8 +192,8 @@ public class LevelrNetwork implements Serializable {
 
     public int whereTo(double[] inputs){
         BasicMLData input = new BasicMLData(inputs);
-        int winner = neuron2identity.get(network.winner(input));
-        return winner;
+
+        return  neuron2identity.get(network.winner(input));
 
     }
 }

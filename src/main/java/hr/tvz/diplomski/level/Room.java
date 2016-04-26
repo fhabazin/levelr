@@ -131,4 +131,39 @@ public class Room {
     public boolean[] getRoom(){
         return room;
     }
+
+
+    public double hasNorthWall() {
+        if(north)
+            return 1;
+        else
+            return 0;
+    }
+
+
+
+    public double hasSouthWall() {
+        if(south)
+            return 1;
+        else
+            return 0;
+    }
+
+
+
+    public double hasWestWall() {
+        if(west)
+            return 1;
+        else
+            return 0;
+    }
+
+
+
+    public double hasEastWall() {
+        if(east)
+            return 1;
+        else
+            return 0;
+    }
 }

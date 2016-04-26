@@ -109,19 +109,7 @@ public class Level {
         }
     }
 
-    public String toString() {
-        String levelString = "";
-        for (int x = 0; x < this.xSize; x++) {
-            for (int y = 0; y < this.ySize; y++) {
-                //System.out.println(x+", "+y+level[x][y].);
-            }
 
-
-
-        }
-       
-        return levelString;
-    }
 
     public Image generateLevelImage(Image image, int imageSizeX, int imageSizeY){
         roomSizeX = imageSizeX/xSize;
@@ -187,7 +175,7 @@ public class Level {
     public boolean[][] getWalls(){
         Room currentRoom;
         boolean[][] walls = new boolean[(xSize+1)*roomSizeX][(ySize+1)*roomSizeY];
-        int i = 0;
+        int i;
         for(int x = 0; x < xSize; x++){
             for(int y = 0; y < ySize; y++){
                 currentRoom = level[x][y];
