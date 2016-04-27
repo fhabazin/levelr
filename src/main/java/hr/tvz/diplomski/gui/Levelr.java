@@ -157,7 +157,6 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                         System.out.print("1,");
                     else
                         System.out.print("0,");
-
                 }
                 System.out.print("\n");
             }*/
@@ -395,7 +394,6 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                             b += 1;
                         else if (b > prevb)
                             b -= 1;
-
                     }*/
 
                 ripple[i] = texture[a + (b * width)];
@@ -440,16 +438,20 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
             }
             xComponent = maxX - prevMaxX;
             yComponent = maxY - prevMaxY;
+            //yComponent > 0 wave is north
+            //yComponent == 0 wave is east or west
+            //yComponent < 0 wave is north
 
+            //double array must be n,e,s,w,n,e,s,w
             if (yComponent > 0) {
-                networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasSouthWall(), networkCell.hasWestWall(), networkCell.hasEastWall()};
+                networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else if (yComponent == 0) {
                 if (xComponent <= 0)
-                    networkInput = new double[]{1, 0, 2, 3, networkCell.hasNorthWall(), networkCell.hasSouthWall(), networkCell.hasWestWall(), networkCell.hasEastWall()};
+                    networkInput = new double[]{3, 0, 1, 2,networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
                 else
-                    networkInput = new double[]{2, 0, 1, 3, networkCell.hasNorthWall(), networkCell.hasSouthWall(), networkCell.hasWestWall(), networkCell.hasEastWall()};
+                    networkInput = new double[]{1, 0, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else {
-                networkInput = new double[]{3, 1, 2, 0, networkCell.hasNorthWall(), networkCell.hasSouthWall(), networkCell.hasWestWall(), networkCell.hasEastWall()};
+                networkInput = new double[]{2, 1, 3, 0, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             }
             //0 north
             //1 west
@@ -484,4 +486,3 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 }
-
