@@ -3,6 +3,7 @@ package hr.tvz.diplomski.gui;
 import hr.tvz.diplomski.level.Level;
 import hr.tvz.diplomski.level.Room;
 import hr.tvz.diplomski.neural.LevelrNetwork;
+import org.encog.util.obj.SerializeObject;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,6 +26,8 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
     final static int TIMER_DIV = 1000000;
     private final JLabel netLoc;
     private final JLabel sndLoc;
+
+    private   JButton resetButton;
     Canvas canvas;
     JCheckBox autoMove;
     JSplitPane pane;
@@ -67,7 +70,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
             canvas.setImage(ImageIO.read(new File("levelBackground.png")));
             levelr = ImageIO.read(new File("network.png"));
             soundSource = ImageIO.read(new File("crosshair.png"));
-
+            SerializeObject.save(new File("levelr.net"),network);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -91,7 +94,11 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
         generateLevel.addActionListener(this);
         levelPanel.add(generateLevel);
-        levelPanel.add(new JLabel(""));
+
+        resetButton = new JButton("Reset level");
+        resetButton.addActionListener(this);
+        levelPanel.add(resetButton);
+        resetButton.setEnabled(false);
 
         autoMove = new JCheckBox("Auto move");
         levelPanel.add(autoMove);
@@ -114,6 +121,8 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         sndLoc = new JLabel("");
         levelPanel.add(sndLoc);
         pane.setBottomComponent(levelPanel);
+
+        /**/
 
 
         this.add(pane);
@@ -163,12 +172,30 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
             placeNet.setEnabled(true);
             placeSource.setEnabled(true);
+            resetButton.setEnabled(true);
         }
         if (e.getSource() == placeNet) {
             placeNetwork = true;
         }
         if (e.getSource() == placeSource) {
             placeSoundSource = true;
+        }
+        if(e.getSource() == resetButton){
+
+            try {
+                canvas = new Canvas(ImageIO.read(new File("levelBackground.png")));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            canvas.resetImage();
+            wallNumber.setText("");
+            generateLevel.setEnabled(true);
+            placeNet.setEnabled(true);
+            placeSource.setEnabled(true);
+            canvas.addMouseListener(this);
+            pane.setTopComponent(canvas);
+           animatorThread = null;
+            frozen = true;
         }
 
     }
@@ -289,11 +316,30 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         }
     }
 
+    public void stop() {
+        if (frozen) {
+            //Do nothing.
+        } else {
+            //Start animation thread
+            if (animatorThread != null) {
+                try {
+                    animatorThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                animatorThread = null;
+            }
+        }
+    }
+
     public void run() {
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         long startTime = System.currentTimeMillis();
-
+        wave = new short[height][width];
+        findMaxPoint();
         while (Thread.currentThread() == animatorThread) {
+
+
 
             newframe();
             source.newPixels();
@@ -308,16 +354,30 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
 
             netLoc.setText("netX: " + networkLocationX + ", netY: " + networkLocationY);
-
+            if(networkLocationY == soundSourceY && networkLocationX == soundSourceX){
+                break;
+            }
             try {
 
                 startTime += delay;
                 Thread.sleep(Math.max(0, startTime - System.currentTimeMillis()));
-
+                disturb(soundSourceX, soundSourceY);
             } catch (InterruptedException e) {
                 break;
             }
 
+        }
+    }
+
+    private void findMaxPoint() {
+        maxWave = wave[networkLocationY][networkLocationX];
+        for (int y = networkLocationY - 20; y < networkLocationY + 20; y++) {
+            for (int x = networkLocationX - 20; x < networkLocationX + 20; x++) {
+                if (wave[y][x] > prevMaxX) {
+                    prevMaxX = x;
+                    prevMaxY= y;
+                }
+            }
         }
     }
 
@@ -330,7 +390,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         i = 0;
         mapind = oldind;
 
-        wave = new short[height][width];
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 wave[y][x] = 0;
@@ -416,51 +476,48 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
 
 
     public void checkForWave() {
-        int numberOfNonZeroPixels = 0;
-        int xComponent, yComponent;
-        for (int y = networkLocationY - 20; y < networkLocationY + 20; y++) {
-            for (int x = networkLocationX - 20; x < networkLocationX + 20; x++) {
-                System.out.println(wave[y][x]);
-                if (wave[y][x] != 1024) {
-                    numberOfNonZeroPixels++;
-                }
 
-            }
-        }
-        if (numberOfNonZeroPixels >= level.getRoomSizeX() * level.getRoomSizeY()) {
+        int xComponent, yComponent;
+        findMaxPoint();
+        if (wave[networkLocationY][networkLocationX] != 1024) {
+
             for (int y = networkLocationY - 20; y < networkLocationY + 20; y++) {
                 for (int x = networkLocationX - 20; x < networkLocationX + 20; x++) {
                     if (wave[y][x] > maxWave) {
                         maxX = x;
-                        maxY = y;
+                        maxY= y;
                     }
                 }
             }
             xComponent = maxX - prevMaxX;
             yComponent = maxY - prevMaxY;
+
+            prevMaxX = maxX;
+            prevMaxY = maxY;
             //yComponent > 0 wave is north
             //yComponent == 0 wave is east or west
             //yComponent < 0 wave is north
 
             //double array must be n,e,s,w,n,e,s,w
             if (yComponent > 0) {
-                networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
+                networkInput = new double[]{2, 1, 3, 0, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else if (yComponent == 0) {
-                if (xComponent <= 0)
+                if (xComponent < 0)
                     networkInput = new double[]{3, 0, 1, 2,networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
                 else
                     networkInput = new double[]{1, 0, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else {
-                networkInput = new double[]{2, 1, 3, 0, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
+
+                networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             }
-            //0 north
+            //0 south
             //1 west
             //2 east
-            //3 south
+            //3 north
             whereTo = network.whereTo(networkInput);
             switch (whereTo) {
                 case 0:
-                    networkLocationY -= level.getRoomSizeY();
+                    networkLocationY += level.getRoomSizeY();
                     break;
                 case 1:
                     networkLocationX -= level.getRoomSizeX();
@@ -469,7 +526,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                     networkLocationX += level.getRoomSizeX();
                     break;
                 case 3:
-                    networkLocationY += level.getRoomSizeY();
+                    networkLocationY -= level.getRoomSizeY();
                 default:
                     break;
             }

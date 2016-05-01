@@ -183,7 +183,7 @@ public class LevelrNetwork implements Serializable {
             train.iteration();
 
             System.out.println(train.getError()*100);
-        }while(train.getError()>0.000000000001);
+        }while(train.getError()>0.00000000000001);
         //fireDoneTraining(new NetEvent(network));
 
 
