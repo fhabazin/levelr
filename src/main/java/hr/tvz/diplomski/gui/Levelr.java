@@ -480,7 +480,7 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
         int xComponent, yComponent;
         findMaxPoint();
         if (wave[networkLocationY][networkLocationX] != 1024) {
-
+            maxWave = wave[networkLocationY - 20][networkLocationX - 20];
             for (int y = networkLocationY - 20; y < networkLocationY + 20; y++) {
                 for (int x = networkLocationX - 20; x < networkLocationX + 20; x++) {
                     if (wave[y][x] > maxWave) {
@@ -499,13 +499,15 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
             //yComponent < 0 wave is north
 
             //double array must be n,e,s,w,n,e,s,w
-            if (yComponent > 0) {
+            if (yComponent < 0) {
                 networkInput = new double[]{2, 1, 3, 0, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else if (yComponent == 0) {
                 if (xComponent < 0)
-                    networkInput = new double[]{3, 0, 1, 2,networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
-                else
+                    networkInput = new double[]{2, 3, 0, 1,networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
+                else if (xComponent > 0)
                     networkInput = new double[]{1, 0, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
+                else
+                    networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
             } else {
 
                 networkInput = new double[]{0, 1, 2, 3, networkCell.hasNorthWall(), networkCell.hasEastWall(), networkCell.hasSouthWall(), networkCell.hasWestWall()};
@@ -520,10 +522,10 @@ public class Levelr extends JFrame implements ActionListener, MouseListener, Run
                     networkLocationY += level.getRoomSizeY();
                     break;
                 case 1:
-                    networkLocationX -= level.getRoomSizeX();
+                    networkLocationX += level.getRoomSizeX();
                     break;
                 case 2:
-                    networkLocationX += level.getRoomSizeX();
+                    networkLocationX -= level.getRoomSizeX();
                     break;
                 case 3:
                     networkLocationY -= level.getRoomSizeY();

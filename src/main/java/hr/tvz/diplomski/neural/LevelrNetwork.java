@@ -141,7 +141,7 @@ public class LevelrNetwork implements Serializable {
     }
 
     private static  void buildNetwork() throws IOException {
-        System.out.println("Downsampling images...");
+
 
         for (final MovingPair pair : moveList) {
             final MLData ideal = new BasicMLData(outputCount);
@@ -183,7 +183,7 @@ public class LevelrNetwork implements Serializable {
             train.iteration();
 
             System.out.println(train.getError()*100);
-        }while(train.getError()>0.00000000000001);
+        }while(train.getError()>0.00000000000000000001);
         //fireDoneTraining(new NetEvent(network));
 
 
