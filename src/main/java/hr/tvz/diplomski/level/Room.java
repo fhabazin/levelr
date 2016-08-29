@@ -1,7 +1,7 @@
 package hr.tvz.diplomski.level;
 
 public class Room {
-
+    private static final int SIZE = WallPositions.values().length;
     boolean north, south, west, east;
     private boolean room[];
     public Room(boolean north, boolean south, boolean west, boolean east){
@@ -80,9 +80,9 @@ public class Room {
         return east;
     }
 
-    public void makeWall(int wallPosition) {
-        room[wallPosition] = true;
-        updateRoom(wallPosition);
+    public void makeWall(WallPositions wallPosition) {
+        room[wallPosition.ordinal()] = true;
+        updateRoom(wallPosition.ordinal());
     }
 
     private void updateRoom(int wallPosition) {
@@ -91,13 +91,13 @@ public class Room {
                 north = true;
                 break;
             case 1:
-                south = true;
+                east = true;
                 break;
             case 2:
-                west= true;
+                south = true;
                 break;
             case 3:
-                east = true;
+                west= true;
                 break;
             default:
                 break;
@@ -111,17 +111,17 @@ public class Room {
     }
 
     public void setSouth(boolean south) {
-        this.south = room[1] = south;
+        this.south = room[2] = south;
 
     }
 
     public void setWest(boolean west) {
-        this.west = room[2] = west;
+        this.west = room[3] = west;
 
     }
 
     public void setEast(boolean east) {
-        this.east = room[3] = east;
+        this.east = room[1] = east;
     }
 
     public boolean hasWall(int wallPosition) {
@@ -165,5 +165,16 @@ public class Room {
             return 1;
         else
             return 0;
+    }
+
+    public double[] getWalls() {
+        double[] walls = new double[room.length];
+        for (int i = 0; i < room.length; i++) {
+            if (room[i])
+                walls[i] = 1;
+            else
+                walls[i] = 0;
+        }
+        return walls;
     }
 }

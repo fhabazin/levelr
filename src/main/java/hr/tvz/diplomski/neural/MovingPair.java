@@ -5,7 +5,7 @@ package hr.tvz.diplomski.neural;
  */
 public class MovingPair {
 
-    private double[] inputs;
+   private double[] inputs;
     private int direction;
 
     public MovingPair(double[] inputs, int direction){
